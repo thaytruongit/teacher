@@ -1,0 +1,1142 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Học Sinh - Thi Đấu Trực Tiếp & Tự Học E-Learning Theo Tiết</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; font-family: 'Montserrat', sans-serif; user-select: none; }
+    body { margin: 0; background: #1f0d3d; color: #fff; min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; }
+    .hud-bar { display: flex; justify-content: space-between; align-items: center; padding: 8px 14px; background: rgba(0,0,0,0.55); font-weight: 800; font-size: 13px; border-bottom: 1px solid rgba(255,255,255,0.12); flex-wrap: wrap; gap: 8px; }
+    .score-pill { background: #ffdd33; color: #1f0d3d; padding: 4px 12px; border-radius: 999px; font-weight: 900; font-size: 12px; }
+    .mode-switcher { display: flex; justify-content: center; gap: 10px; padding: 9px 14px; background: rgba(0,0,0,0.38); border-bottom: 1px solid rgba(255,255,255,0.1); flex-wrap: wrap; }
+    .mode-tab { border: 2px solid rgba(255,255,255,0.25); background: rgba(255,255,255,0.08); color: #fff; padding: 8px 16px; border-radius: 999px; font-weight: 900; font-size: 12px; cursor: pointer; transition: 0.15s; }
+    .mode-tab.active { background: #ffdd33; color: #1f0d3d; border-color: #ffdd33; box-shadow: 0 0 15px rgba(255,221,51,0.4); }
+    .center-screen { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 16px; text-align: center; }
+    .login-card { background: #fff; color: #1f0d3d; padding: 22px; border-radius: 18px; width: 100%; max-width: 400px; box-shadow: 0 12px 35px rgba(0,0,0,0.5); }
+    .login-card input { width: 100%; padding: 12px; margin-bottom: 10px; border: 2px solid #ccc; border-radius: 10px; font-size: 15px; font-weight: 800; text-align: center; }
+    .btn-join { width: 100%; background: #26890c; color: #fff; border: none; padding: 12px; border-radius: 10px; font-size: 14px; font-weight: 900; cursor: pointer; }
+
+    /* CỔNG TỰ HỌC E-LEARNING */
+    #elearningPortalScreen { display: none; max-width: 1080px; width: 100%; margin: 10px auto; padding: 0 14px; flex: 1; }
+    .el-student-bar { display: grid; grid-template-columns: 1fr 1fr 150px 160px; gap: 10px; background: rgba(255,255,255,0.09); border: 1px solid rgba(255,255,255,0.2); padding: 12px; border-radius: 14px; margin-bottom: 12px; align-items: end; }
+    @media (max-width: 768px) { .el-student-bar { grid-template-columns: 1fr 1fr; } }
+    .el-student-bar label { display: block; font-size: 11px; font-weight: 800; color: #80deea; margin-bottom: 4px; }
+    .el-student-bar input, .el-student-bar select { width: 100%; padding: 9px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.3); background: rgba(0,0,0,0.45); color: #fff; font-weight: 800; font-size: 13px; }
+    .el-student-bar select option { background: #1f0d3d; color: #fff; }
+    .el-grade-pills { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+    .el-grade-pill { padding: 7px 14px; border-radius: 999px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.22); color: #fff; font-weight: 800; font-size: 12px; cursor: pointer; }
+    .el-grade-pill.active { background: #00e5ff; color: #00251a; border-color: #00e5ff; }
+    .el-lesson-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 12px; margin-bottom: 24px; }
+    .el-lesson-card { background: linear-gradient(145deg, rgba(70,23,143,0.6), rgba(19,104,206,0.28)); border: 1px solid rgba(255,255,255,0.22); border-radius: 14px; padding: 14px; display: flex; flex-direction: column; justify-content: space-between; gap: 10px; }
+
+    /* BỐ CỤC HIỂN THỊ TỐI ƯU: HÌNH ẢNH PHÓNG TO RÕ NÉT + ĐÁP ÁN NHỎ GỌN TRẬT TỰ */
+    #elearningPlayerScreen { display: none; max-width: 1080px; width: 100%; margin: 6px auto; padding: 0 12px 18px 12px; flex: 1; flex-direction: column; gap: 8px; }
+    .el-step-dots { display: flex; gap: 5px; overflow-x: auto; padding: 5px; background: rgba(0,0,0,0.35); border-radius: 10px; }
+    .el-dot { min-width: 28px; height: 28px; border-radius: 7px; border: 1px solid rgba(255,255,255,0.25); background: rgba(255,255,255,0.1); color: #fff; font-weight: 900; font-size: 11px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+    .el-dot.current { border: 2px solid #ffdd33; background: #46178f; color: #ffdd33; }
+    .el-dot.done-ok { background: #26890c; color: #fff; border-color: #00e676; }
+    .el-dot.done-wrong { background: #e21b3c; color: #fff; }
+    .el-feedback-banner { display: none; padding: 10px 14px; border-radius: 10px; font-weight: 800; font-size: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+
+    #padScreen { display: none; flex: 1; flex-direction: column; max-width: 1080px; width: 100%; margin: 0 auto; padding: 8px 12px 14px 12px; gap: 8px; }
+    .student-q-box { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.18); border-radius: 14px; padding: 10px 12px; text-align: center; flex: 1; display: flex; flex-direction: column; justify-content: center; }
+    .student-phase-tag { display: inline-block; background: #00acc1; color: #fff; font-size: 11px; font-weight: 900; padding: 3px 10px; border-radius: 999px; }
+
+    /* HÌNH ẢNH SLIDE ĐƯỢC BỐ TRÍ KÍCH THƯỚC PHÓNG TO RÕ NÉT */
+    .student-slide-img {
+      width: 100%;
+      max-width: 1020px;
+      max-height: 58vh;
+      object-fit: contain;
+      border-radius: 12px;
+      border: 2px solid #ffdd33;
+      background: #090414;
+      margin: 6px auto 0 auto;
+      display: none;
+      cursor: zoom-in;
+      box-shadow: 0 8px 26px rgba(0,0,0,0.55);
+      transition: max-height 0.2s ease;
+    }
+    .student-slide-img.lecture-large {
+      max-height: 74vh;
+      border-color: #00e5ff;
+    }
+    .student-video-frame {
+      width: 100%;
+      max-width: 960px;
+      height: 56vh;
+      min-height: 260px;
+      border-radius: 12px;
+      border: 2px solid #00e5ff;
+      background: #000;
+      margin: 6px auto 0 auto;
+      display: none;
+    }
+
+    /* ĐÁP ÁN NHỎ LẠI GỌN GÀNG, CÓ TRẬT TỰ (2 CỘT x 2 HÀNG NGANG) */
+    .pads-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      width: 100%;
+      max-width: 1020px;
+      margin: 0 auto;
+      flex: 0 0 auto;
+    }
+    @media (max-width: 560px) {
+      .pads-grid { grid-template-columns: 1fr; gap: 6px; }
+    }
+    .pad-btn {
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 10px;
+      color: #fff;
+      cursor: pointer;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 10px;
+      padding: 9px 12px;
+      min-height: 48px;
+      box-shadow: 0 3px 0 rgba(0,0,0,0.35);
+      transition: transform 0.1s, filter 0.12s;
+      text-align: left;
+    }
+    .pad-btn:hover { filter: brightness(1.08); }
+    .pad-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 rgba(0,0,0,0.35); }
+    .pad-btn.multi-selected { outline: 3px solid #fff; box-shadow: 0 0 14px #ffdd33; }
+    .pad-a { background: #e21b3c; }
+    .pad-b { background: #1368ce; }
+    .pad-c { background: #d89e00; }
+    .pad-d { background: #26890c; }
+    .letter-badge {
+      min-width: 30px;
+      height: 30px;
+      font-size: 14px;
+      font-weight: 900;
+      line-height: 1;
+      background: rgba(0,0,0,0.28);
+      border-radius: 7px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .pad-text {
+      font-size: 13px;
+      font-weight: 800;
+      text-align: left;
+      line-height: 1.3;
+      flex: 1;
+      word-break: break-word;
+    }
+    .btn-submit-multi { display: none; width: 100%; max-width: 1020px; margin: 0 auto; background: linear-gradient(90deg, #ffdd33, #ff9100); color: #1f0d3d; border: none; padding: 10px; border-radius: 10px; font-size: 13px; font-weight: 900; cursor: pointer; }
+    .special-action-box { display: none; flex-direction: column; align-items: center; justify-content: center; padding: 10px 14px; background: rgba(255,255,255,0.07); border-radius: 12px; gap: 8px; max-width: 1020px; width: 100%; margin: 0 auto; }
+    .lecture-note-banner { display: none; padding: 8px 14px; border-radius: 10px; background: rgba(0,229,255,0.12); border: 1px solid rgba(0,229,255,0.35); font-size: 12px; font-weight: 800; color: #80deea; text-align: center; max-width: 1020px; width: 100%; margin: 0 auto; }
+    .word-input { width: 100%; max-width: 400px; padding: 10px; border-radius: 9px; border: 2px solid #00e5ff; font-size: 14px; font-weight: 800; text-align: center; }
+    .feedback-full { flex: 1; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center; }
+    .fb-correct { background: #26890c; }
+    .fb-wrong { background: #e21b3c; }
+
+    /* LIGHTBOX PHÓNG TO ẢNH SLIDE TOÀN MÀN HÌNH */
+    #imgZoomOverlay { position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 99999; display: none; align-items: center; justify-content: center; padding: 12px; cursor: zoom-out; }
+    #imgZoomOverlay img { max-width: 98vw; max-height: 95vh; object-fit: contain; border-radius: 10px; border: 2px solid #ffdd33; }
+  </style>
+</head>
+<body>
+  <!-- Hộp phóng to ảnh toàn màn hình khi chạm vào Slide -->
+  <div id="imgZoomOverlay" onclick="this.style.display='none'">
+    <img id="imgZoomTarget" src="" alt="Phóng to Slide">
+  </div>
+
+  <div class="mode-switcher" id="topModeSwitcher">
+    <button type="button" class="mode-tab active" id="tabLiveBtn" onclick="switchStudentMode('LIVE')">🎮 THI ĐẤU TRỰC TIẾP TRÊN LỚP (MÃ PIN)</button>
+    <button type="button" class="mode-tab" id="tabElearningBtn" onclick="switchStudentMode('ELEARNING')">📚 TỰ HỌC E-LEARNING THEO KHỐI & TIẾT</button>
+  </div>
+
+  <div class="hud-bar" id="hudBar" style="display:none;">
+    <div>👤 <span id="stNameDisplay">Học sinh</span> <span id="stLessonBadge" style="font-size:11px; color:#80deea; margin-left:6px;"></span></div>
+    <div style="display:flex; align-items:center; gap:8px;">
+      <span style="font-size:11px; color:#b0bec5; font-weight:700;">🔍 Chạm vào ảnh Slide để phóng to</span>
+      <button type="button" onclick="toggleStudentSound()" id="btnStSound" style="background:rgba(255,255,255,0.15); color:#fff; border:none; border-radius:8px; padding:4px 8px; font-weight:800; cursor:pointer;">🔊</button>
+      <div class="score-pill" id="hudScorePill" style="display:none; background:rgba(255,255,255,0.12); color:#ffdd33; border:1px solid rgba(255,221,51,0.4);">🔒 <span id="stScoreDisplay">Điểm số bảo mật</span></div>
+    </div>
+  </div>
+
+  <!-- CHẾ ĐỘ 1: NHẬP PIN -->
+  <div class="center-screen" id="loginScreen">
+    <div class="login-card">
+      <h2 style="margin:0 0 10px 0; font-weight:900; color:#46178f;">🎮 VÀO PHÒNG THI TRỰC TIẾP</h2>
+      <p style="font-size:12px; color:#666; margin-top:0; font-weight:700;">Nhập mã PIN trên màn hình Giáo viên hoặc chọn <b>"📚 Tự Học E-Learning"</b> ở thanh trên</p>
+      <input type="number" id="pinInput" placeholder="Nhập Mã PIN 6 số">
+      <input type="text" id="nameInput" placeholder="Họ và tên của em">
+      <input type="text" id="classInput" placeholder="Lớp (VD: 6A1)">
+      <button type="button" class="btn-join" id="btnJoin" onclick="joinRoom()">THAM GIA NGAY 🚀</button>
+      <div id="errMsg" style="color:#e21b3c; font-weight:800; font-size:13px; margin-top:10px;"></div>
+    </div>
+  </div>
+
+  <!-- CHẾ ĐỘ 2: CỔNG TỰ HỌC E-LEARNING -->
+  <div id="elearningPortalScreen">
+    <div class="el-student-bar">
+      <div><label>👤 Họ và tên học sinh (*)</label><input type="text" id="elNameInput" placeholder="Nhập họ và tên của em..."></div>
+      <div><label>🏫 Lớp (*)</label><input type="text" id="elClassInput" placeholder="VD: 6A1, 7B, 8C..."></div>
+      <div>
+        <label>📅 Học kỳ</label>
+        <select id="elSemesterFilter" onchange="renderElearningCatalog()">
+          <option value="ALL">Tất cả Học kỳ</option><option value="HK1">Học kỳ 1 (HK1)</option><option value="HK2">Học kỳ 2 (HK2)</option><option value="ÔN TẬP">Ôn tập</option>
+        </select>
+      </div>
+      <div><label>🔍 Tìm tiết học</label><input type="text" id="elSearchInput" oninput="renderElearningCatalog()" placeholder="Số tiết, tên bài..."></div>
+    </div>
+
+    <div class="el-grade-pills" id="elGradePills">
+      <div class="el-grade-pill active" onclick="setElGradeFilter('ALL', this)">📚 Tất cả các khối</div>
+      <div class="el-grade-pill" onclick="setElGradeFilter('Khối 6', this)">📗 Khối 6</div>
+      <div class="el-grade-pill" onclick="setElGradeFilter('Khối 7', this)">📘 Khối 7</div>
+      <div class="el-grade-pill" onclick="setElGradeFilter('Khối 8', this)">📙 Khối 8</div>
+      <div class="el-grade-pill" onclick="setElGradeFilter('Khối 9', this)">📕 Khối 9</div>
+      <div class="el-grade-pill" onclick="setElGradeFilter('OTHER', this)">📒 Khối khác</div>
+    </div>
+
+    <div id="elLessonGrid" class="el-lesson-grid">
+      <div style="grid-column:1/-1; text-align:center; padding:30px; color:#ccc;">⏳ Đang tải danh sách bài giảng E-Learning theo khối...</div>
+    </div>
+  </div>
+
+  <!-- TRÌNH HỌC E-LEARNING TỪNG BƯỚC -->
+  <div id="elearningPlayerScreen">
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; background:rgba(0,0,0,0.4); padding:8px 12px; border-radius:10px;">
+      <div>
+        <span id="elPlayerMetaBadge" style="background:#00acc1; color:#fff; font-size:11px; font-weight:900; padding:3px 9px; border-radius:6px;">KHỐI 6 • TIẾT 1</span>
+        <strong id="elPlayerTitle" style="margin-left:8px; font-size:13px; color:#ffdd33;">Tên bài học</strong>
+      </div>
+      <div style="display:flex; gap:6px; align-items:center;">
+        <span id="elScoreWrap" style="font-size:12px; font-weight:800; color:#80deea;">🔒 Điểm số: Công bố khi kết thúc tiết</span>
+        <button type="button" onclick="finishElearningAndSave()" style="background:#ff9100; color:#1f0d3d; border:none; border-radius:8px; padding:5px 11px; font-weight:900; font-size:11px; cursor:pointer;">🏁 Nộp & Hoàn thành</button>
+        <button type="button" onclick="exitElearningPlayer()" style="background:rgba(255,255,255,0.15); color:#fff; border:none; border-radius:8px; padding:5px 10px; font-weight:800; font-size:11px; cursor:pointer;">🔙 Chọn tiết khác</button>
+      </div>
+    </div>
+
+    <div id="elStepDots" class="el-step-dots"></div>
+
+    <div class="student-q-box">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+        <span id="elPhaseTag" class="student-phase-tag">Pha 1: Khởi động</span>
+        <span id="elStepCounter" style="font-size:11px; font-weight:900; color:#ffdd33;">Bước 1/10</span>
+      </div>
+      <div id="elQText" style="font-weight:800; font-size:15px; margin:4px 0;">Nội dung câu hỏi / bài học...</div>
+      <div id="elMultiHint" style="display:none; color:#ffdd33; font-size:11px; font-weight:900; margin-bottom:4px;">
+        ☑️ CÂU HỎI CHỌN NHIỀU ĐÁP ÁN: Chạm chọn các phương án đúng rồi bấm nút KIỂM TRA ĐÁP ÁN bên dưới!
+      </div>
+      <img id="elSlideImg" class="student-slide-img" src="" alt="Slide E-Learning HD" onclick="openZoomImage(this.src)">
+      <iframe id="elVideoIframe" class="student-video-frame" allow="autoplay; fullscreen"></iframe>
+    </div>
+
+    <div id="elLectureNoteBanner" class="lecture-note-banner"></div>
+
+    <div id="elFeedbackBanner" class="el-feedback-banner">
+      <div id="elFeedbackText"></div>
+      <div style="display:flex; gap:8px;">
+        <button type="button" id="btnElRetry" onclick="retryCurrentElStep()" style="background:rgba(0,0,0,0.4); color:#fff; border:1px solid #fff; padding:6px 12px; border-radius:8px; font-weight:800; font-size:11px; cursor:pointer;">🔄 Làm lại câu này</button>
+        <button type="button" onclick="goElStep(elCurrentIdx + 1)" style="background:#ffdd33; color:#1f0d3d; border:none; padding:6px 14px; border-radius:8px; font-weight:900; font-size:11px; cursor:pointer;">➡️ Bước tiếp theo</button>
+      </div>
+    </div>
+
+    <div class="pads-grid" id="elPadsGrid">
+      <button type="button" class="pad-btn pad-a" id="elPad0" onclick="handleElPadTap(0)"><div class="letter-badge" id="elBadge0">A</div><div class="pad-text" id="elOpt0">Đáp án A</div></button>
+      <button type="button" class="pad-btn pad-b" id="elPad1" onclick="handleElPadTap(1)"><div class="letter-badge" id="elBadge1">B</div><div class="pad-text" id="elOpt1">Đáp án B</div></button>
+      <button type="button" class="pad-btn pad-c" id="elPad2" onclick="handleElPadTap(2)"><div class="letter-badge" id="elBadge2">C</div><div class="pad-text" id="elOpt2">Đáp án C</div></button>
+      <button type="button" class="pad-btn pad-d" id="elPad3" onclick="handleElPadTap(3)"><div class="letter-badge" id="elBadge3">D</div><div class="pad-text" id="elOpt3">Đáp án D</div></button>
+    </div>
+
+    <button type="button" id="btnElCheckMulti" class="btn-submit-multi" onclick="checkElMultiAnswer()">✔️ KIỂM TRA ĐÁP ÁN ĐÃ CHỌN</button>
+
+    <div id="elWordBox" class="special-action-box">
+      <div style="font-weight:800; font-size:13px; color:#ffdd33;">💬 Nhập câu trả lời hoặc từ khóa của em:</div>
+      <input type="text" id="elWordInput" class="word-input" placeholder="Nhập nội dung trả lời...">
+      <button type="button" class="btn-join" style="max-width:260px; padding:9px;" onclick="submitElWordCloud()">✔️ GỬI CÂU TRẢ LỜI</button>
+    </div>
+
+    <div style="display:flex; justify-content:space-between; margin-top:4px;">
+      <button type="button" onclick="goElStep(elCurrentIdx - 1)" id="btnElPrev" style="background:rgba(255,255,255,0.12); color:#fff; border:none; padding:9px 16px; border-radius:9px; font-weight:800; font-size:12px; cursor:pointer;">⬅️ Bước trước</button>
+      <button type="button" onclick="goElStep(elCurrentIdx + 1)" id="btnElNext" style="background:#1368ce; color:#fff; border:none; padding:9px 16px; border-radius:9px; font-weight:800; font-size:12px; cursor:pointer;">Bước tiếp theo ➡️</button>
+    </div>
+  </div>
+
+  <!-- MÀN HÌNH TỔNG KẾT E-LEARNING -->
+  <div class="center-screen" id="elearningSummaryScreen" style="display:none;">
+    <div class="login-card" style="max-width:480px;">
+      <div style="font-size:50px;">🏅</div>
+      <h2 style="margin:6px 0; color:#46178f; font-weight:900;">HOÀN THÀNH TIẾT TỰ HỌC!</h2>
+      <div id="elCertLesson" style="font-weight:800; color:#1368ce; font-size:14px; margin-bottom:12px;"></div>
+      <div style="background:#f3e5f5; padding:14px; border-radius:12px; text-align:left; font-size:14px; font-weight:800; color:#1f0d3d; margin-bottom:14px; line-height:1.7;">
+        <div>👤 Học sinh: <span id="elCertStudent"></span></div>
+        <div>✅ Số bước hoàn thành: <span id="elCertSteps"></span></div>
+        <div>🎯 Kết quả trắc nghiệm: <span id="elCertAccuracy" style="color:#26890c;"></span></div>
+        <div>⭐ Tổng điểm trắc nghiệm: <span id="elCertScore" style="color:#d89e00;"></span> điểm</div>
+        <div>🏆 Xếp loại: <span id="elCertStatus" style="color:#e21b3c;"></span></div>
+      </div>
+      <div style="display:flex; gap:10px;">
+        <button type="button" class="btn-join" style="background:#1368ce;" onclick="restartCurrentElearningLesson()">🔄 Học lại tiết này</button>
+        <button type="button" class="btn-join" onclick="exitElearningPlayer()">📚 Chọn tiết học khác</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MÀN HÌNH CHỜ LIVE PIN -->
+  <div class="center-screen" id="waitScreen" style="display:none;">
+    <h1 id="waitIcon" style="font-size:52px; margin:0;">⏳</h1>
+    <h2 id="waitTitle">Đang chờ Giáo viên bắt đầu...</h2>
+    <p id="waitSub" style="color:#ccc; font-weight:700;">Hãy chú ý lên màn hình máy chiếu và điện thoại của em!</p>
+  </div>
+
+  <!-- MÀN HÌNH TƯƠNG TÁC LIVE PIN -->
+  <div id="padScreen">
+    <div class="student-q-box">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+        <span id="stPhaseTag" class="student-phase-tag">Pha 1: Khởi động</span>
+        <span id="stModeHintBadge" style="font-size:11px; font-weight:800; color:#ffdd33;"></span>
+      </div>
+      <div id="stQText" style="font-weight:800; font-size:15px;">Câu hỏi đang hiển thị...</div>
+      <div id="stMultiHint" style="display:none; color:#ffdd33; font-size:11px; font-weight:900; margin-top:3px;">☑️ CÂU HỎI CHỌN NHIỀU ĐÁP ÁN: Chạm chọn các phương án đúng rồi nhấn nút NỘP ĐÁP ÁN bên dưới!</div>
+      <img id="stSlideImg" class="student-slide-img" src="" alt="Slide bài học HD" onclick="openZoomImage(this.src)">
+      <iframe id="stVideoIframe" class="student-video-frame" allow="autoplay; fullscreen"></iframe>
+    </div>
+
+    <div id="stLectureNoteBanner" class="lecture-note-banner"></div>
+
+    <div class="pads-grid" id="stPadsGrid">
+      <button type="button" class="pad-btn pad-a" id="padBtn0" onclick="handlePadTap(0)"><div class="letter-badge" id="badge0">A</div><div class="pad-text" id="stOpt0">Đáp án A</div></button>
+      <button type="button" class="pad-btn pad-b" id="padBtn1" onclick="handlePadTap(1)"><div class="letter-badge" id="badge1">B</div><div class="pad-text" id="stOpt1">Đáp án B</div></button>
+      <button type="button" class="pad-btn pad-c" id="padBtn2" onclick="handlePadTap(2)"><div class="letter-badge" id="badge2">C</div><div class="pad-text" id="stOpt2">Đáp án C</div></button>
+      <button type="button" class="pad-btn pad-d" id="padBtn3" onclick="handlePadTap(3)"><div class="letter-badge" id="badge3">D</div><div class="pad-text" id="stOpt3">Đáp án D</div></button>
+    </div>
+
+    <button type="button" id="btnSubmitMulti" class="btn-submit-multi" onclick="submitMultiChoice()">🚀 NỘP ĐÁP ÁN ĐÃ CHỌN (0)</button>
+
+    <div id="stWordCloudBox" class="special-action-box">
+      <div style="font-weight:800; font-size:13px; color:#ffdd33;">💬 Nhập ý kiến / từ khóa của em:</div>
+      <input type="text" id="stWordInput" class="word-input" placeholder="Gõ câu trả lời ngắn...">
+      <button type="button" class="btn-join" style="max-width:240px; padding:9px;" onclick="sendWordCloud()">GỬI Ý KIẾN 🚀</button>
+    </div>
+  </div>
+
+  <div class="feedback-full" id="feedbackScreen">
+    <div style="font-size:64px;" id="fbIcon">🎉</div>
+    <h1 id="fbTitle" style="margin:8px 0;">CHÍNH XÁC!</h1>
+    <div id="fbPoints" style="font-size:15px; font-weight:800; color:#ffdd33; margin-top:8px;">🔒 Điểm số và thứ hạng được bảo mật — sẽ công bố khi kết thúc tiết học</div>
+    <div id="fbAiExplain" style="display:none; max-width:540px; margin-top:12px; padding:10px 16px; border-radius:12px; background:rgba(0,0,0,0.35); border:1px solid rgba(255,221,51,0.5); font-size:13px; font-weight:700; color:#fff9c4; line-height:1.5;"></div>
+    <p id="fbRank" style="display:none; margin-top:14px; font-weight:800; background:rgba(0,0,0,0.3); padding:8px 18px; border-radius:999px;">Hạng hiện tại: #1</p>
+  </div>
+
+  <script>
+    var currentStudentMode = 'LIVE';
+    var myPin = '';
+    var myName = '';
+    var pollInterval = null;
+    var currentRenderedQIdx = -1;
+    var hasRevealedForQ = -1;
+    var studentSoundOn = true;
+    var studentSlideMemoryCache = {};
+    var currentSlideType = 'QUIZ';
+    var selectedMultiIndices = [];
+
+    var elCatalogLessons = [];
+    var elFilteredLessons = [];
+    var elGradeFilter = 'ALL';
+    var elCurrentLesson = null;
+    var elCurrentIdx = 0;
+    var elStepStates = {};
+    var elImageCache = {};
+    var elMultiSelected = [];
+    var elStartTimeMs = 0;
+
+    function openZoomImage(src) {
+      if (!src) return;
+      document.getElementById('imgZoomTarget').src = src;
+      document.getElementById('imgZoomOverlay').style.display = 'flex';
+    }
+
+    var stAudioCtx = null;
+    function getStAudioCtx() {
+      if (!stAudioCtx) {
+        var AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (AudioContext) stAudioCtx = new AudioContext();
+      }
+      if (stAudioCtx && stAudioCtx.state === 'suspended') stAudioCtx.resume();
+      return stAudioCtx;
+    }
+
+    function playStudentSound(type) {
+      if (!studentSoundOn) return;
+      var ctx = getStAudioCtx();
+      if (!ctx) return;
+      var now = ctx.currentTime;
+      if (type === 'click') {
+        var osc = ctx.createOscillator(), gain = ctx.createGain();
+        osc.type = 'sine'; osc.frequency.setValueAtTime(600, now);
+        gain.gain.setValueAtTime(0.18, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+        osc.connect(gain); gain.connect(ctx.destination); osc.start(now); osc.stop(now + 0.08);
+      } else if (type === 'correct') {
+        [523.25, 659.25, 783.99, 1046.5].forEach(function(f, i) {
+          var o = ctx.createOscillator(), g = ctx.createGain();
+          o.type = 'triangle'; o.frequency.setValueAtTime(f, now + i * 0.08);
+          g.gain.setValueAtTime(0.22, now + i * 0.08); g.gain.exponentialRampToValueAtTime(0.001, now + i * 0.08 + 0.25);
+          o.connect(g); g.connect(ctx.destination); o.start(now + i * 0.08); o.stop(now + i * 0.08 + 0.25);
+        });
+      } else if (type === 'wrong') {
+        [300, 210].forEach(function(f, i) {
+          var o = ctx.createOscillator(), g = ctx.createGain();
+          o.type = 'sawtooth'; o.frequency.setValueAtTime(f, now + i * 0.15);
+          g.gain.setValueAtTime(0.2, now + i * 0.15); g.gain.exponentialRampToValueAtTime(0.001, now + i * 0.15 + 0.28);
+          o.connect(g); g.connect(ctx.destination); o.start(now + i * 0.15); o.stop(now + i * 0.15 + 0.28);
+        });
+      }
+    }
+
+    function toggleStudentSound() {
+      studentSoundOn = !studentSoundOn;
+      document.getElementById('btnStSound').innerText = studentSoundOn ? '🔊' : '🔇';
+    }
+
+    // ==================== CHUYỂN ĐỔI GIỮA THI TRỰC TIẾP & TỰ HỌC E-LEARNING ====================
+    function switchStudentMode(mode) {
+      currentStudentMode = mode;
+      document.getElementById('tabLiveBtn').classList.toggle('active', mode === 'LIVE');
+      document.getElementById('tabElearningBtn').classList.toggle('active', mode === 'ELEARNING');
+
+      document.getElementById('waitScreen').style.display = 'none';
+      document.getElementById('padScreen').style.display = 'none';
+      document.getElementById('feedbackScreen').style.display = 'none';
+      document.getElementById('elearningPlayerScreen').style.display = 'none';
+      document.getElementById('elearningSummaryScreen').style.display = 'none';
+
+      if (mode === 'ELEARNING') {
+        if (pollInterval) clearInterval(pollInterval);
+        document.getElementById('loginScreen').style.display = 'none';
+        document.getElementById('elearningPortalScreen').style.display = 'block';
+        loadElearningCatalogFromServer();
+      } else {
+        document.getElementById('elearningPortalScreen').style.display = 'none';
+        document.getElementById('loginScreen').style.display = 'flex';
+      }
+    }
+
+    function loadElearningCatalogFromServer() {
+      if (typeof google === 'undefined' || !google.script || !google.script.run) return;
+      google.script.run
+        .withSuccessHandler(function(res) {
+          if (res && res.ok) {
+            elCatalogLessons = res.lessons || [];
+            renderElearningCatalog();
+          }
+        })
+        .getLessonCatalog();
+    }
+
+    function setElGradeFilter(grade, pillEl) {
+      elGradeFilter = grade;
+      document.querySelectorAll('#elGradePills .el-grade-pill').forEach(function(el) { el.classList.remove('active'); });
+      if (pillEl) pillEl.classList.add('active');
+      renderElearningCatalog();
+    }
+
+    function renderElearningCatalog() {
+      var grid = document.getElementById('elLessonGrid');
+      var sem = document.getElementById('elSemesterFilter').value;
+      var kw = (document.getElementById('elSearchInput').value || '').toLowerCase().trim();
+
+      elFilteredLessons = elCatalogLessons.filter(function(item) {
+        if (elGradeFilter !== 'ALL') {
+          if (elGradeFilter === 'OTHER') {
+            if (['Khối 6', 'Khối 7', 'Khối 8', 'Khối 9'].indexOf(item.grade) > -1) return false;
+          } else if (item.grade !== elGradeFilter) return false;
+        }
+        if (sem !== 'ALL' && item.semester !== sem) return false;
+        if (kw) {
+          var hay = (item.grade + ' ' + item.semester + ' ' + item.period + ' ' + item.title).toLowerCase();
+          if (hay.indexOf(kw) === -1) return false;
+        }
+        return true;
+      });
+
+      if (elFilteredLessons.length === 0) {
+        grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:30px; background:rgba(255,255,255,0.05); border-radius:14px; color:#ccc;">Chưa có bài giảng E-Learning nào trong khối này.</div>';
+        return;
+      }
+
+      grid.innerHTML = '';
+      elFilteredLessons.forEach(function(item, idx) {
+        var ps = item.phaseSummary || { P1: 0, P2: 0, P3: 0, P4: 0 };
+        var card = document.createElement('div');
+        card.className = 'el-lesson-card';
+        card.innerHTML =
+          '<div>' +
+            '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">' +
+              '<span style="background:#26890c; color:#fff; padding:3px 9px; border-radius:6px; font-size:11px; font-weight:900;">' + escapeHtml(item.grade) + ' • ' + escapeHtml(item.semester) + '</span>' +
+              '<span style="background:rgba(255,221,51,0.2); border:1px solid #ffdd33; color:#ffdd33; padding:3px 9px; border-radius:6px; font-size:11px; font-weight:900;">⏱️ ' + escapeHtml(item.period) + '</span>' +
+            '</div>' +
+            '<div style="font-weight:900; font-size:15px; color:#fff; margin-bottom:6px; line-height:1.35;">' + escapeHtml(item.title) + '</div>' +
+            '<div style="font-size:11px; color:#80deea; font-weight:700;">📑 Tổng số bước: <b>' + item.slideCount + ' bước</b> (🔥' + (ps.P1||0) + ' • 📖' + (ps.P2||0) + ' • 🎯' + (ps.P3||0) + ' • 🏆' + (ps.P4||0) + ')</div>' +
+          '</div>' +
+          '<button type="button" class="btn-join" style="margin-top:8px; padding:10px; font-size:13px;" onclick="startElearningByIdx(' + idx + ')">▶️ VÀO TỰ HỌC TIẾT NÀY</button>';
+        grid.appendChild(card);
+      });
+    }
+
+    function startElearningByIdx(idx) {
+      var item = elFilteredLessons[idx];
+      if (!item) return;
+
+      var stName = (document.getElementById('elNameInput').value || document.getElementById('nameInput').value || '').trim();
+      var stClass = (document.getElementById('elClassInput').value || document.getElementById('classInput').value || '').trim();
+      if (!stName) {
+        stName = prompt('Nhập Họ và tên của em để bắt đầu tự học và lưu điểm:', '') || '';
+        stName = stName.trim();
+        if (!stName) return;
+        document.getElementById('elNameInput').value = stName;
+      }
+      if (!stClass) {
+        stClass = prompt('Nhập Lớp của em (VD: 6A1):', item.grade.replace('Khối ', '') + 'A1') || 'Lớp';
+        document.getElementById('elClassInput').value = stClass;
+      }
+
+      getStAudioCtx();
+      document.getElementById('stNameDisplay').innerText = stName + ' (' + stClass + ')';
+      document.getElementById('hudBar').style.display = 'flex';
+      document.getElementById('topModeSwitcher').style.display = 'none';
+      document.getElementById('elearningPortalScreen').style.display = 'none';
+      document.getElementById('waitScreen').style.display = 'flex';
+      document.getElementById('waitIcon').innerText = '📚';
+      document.getElementById('waitTitle').innerText = 'Đang mở bài giảng E-Learning...';
+      document.getElementById('waitSub').innerText = item.lessonKey;
+
+      google.script.run
+        .withSuccessHandler(function(pkg) {
+          document.getElementById('waitScreen').style.display = 'none';
+          if (!pkg || !pkg.ok) {
+            alert(pkg ? pkg.msg : 'Không thể tải bài giảng!');
+            document.getElementById('topModeSwitcher').style.display = 'flex';
+            document.getElementById('elearningPortalScreen').style.display = 'block';
+            return;
+          }
+          elCurrentLesson = pkg;
+          elCurrentIdx = 0;
+          elStepStates = {};
+          elImageCache = {};
+          elStartTimeMs = Date.now();
+          document.getElementById('stLessonBadge').innerText = '[' + pkg.grade + ' • ' + pkg.period + ']';
+          document.getElementById('elearningPlayerScreen').style.display = 'flex';
+          renderElPlayerStep();
+        })
+        .getElearningLessonPackage(item.lessonKey);
+    }
+
+    function restartCurrentElearningLesson() {
+      if (!elCurrentLesson) return;
+      elCurrentIdx = 0;
+      elStepStates = {};
+      elStartTimeMs = Date.now();
+      document.getElementById('elearningSummaryScreen').style.display = 'none';
+      document.getElementById('elearningPlayerScreen').style.display = 'flex';
+      renderElPlayerStep();
+    }
+
+    function exitElearningPlayer() {
+      document.getElementById('elearningPlayerScreen').style.display = 'none';
+      document.getElementById('elearningSummaryScreen').style.display = 'none';
+      document.getElementById('topModeSwitcher').style.display = 'flex';
+      document.getElementById('elearningPortalScreen').style.display = 'block';
+    }
+
+    function computeElTotals() {
+      if (!elCurrentLesson || !elCurrentLesson.steps) return { completed: 0, total: 0, quizCorrect: 0, quizTotal: 0, score: 0 };
+      var steps = elCurrentLesson.steps;
+      var completed = 0, quizCorrect = 0, quizTotal = 0, score = 0;
+      for (var i = 0; i < steps.length; i++) {
+        var sType = steps[i].slideType || 'QUIZ';
+        if (sType === 'QUIZ' || sType === 'MULTI') quizTotal++;
+        var st = elStepStates[i];
+        if (st && st.done) {
+          completed++;
+          if (sType !== 'SLIDE' && sType !== 'VIDEO') {
+            score += (st.points || 0);
+          }
+          if ((sType === 'QUIZ' || sType === 'MULTI') && st.correct) quizCorrect++;
+        }
+      }
+      return { completed: completed, total: steps.length, quizCorrect: quizCorrect, quizTotal: quizTotal, score: score };
+    }
+
+    function renderElStepDots() {
+      var wrap = document.getElementById('elStepDots');
+      wrap.innerHTML = '';
+      if (!elCurrentLesson || !elCurrentLesson.steps) return;
+      elCurrentLesson.steps.forEach(function(step, idx) {
+        var st = elStepStates[idx];
+        var cls = 'el-dot';
+        if (idx === elCurrentIdx) cls += ' current';
+        if (st && st.done) cls += (st.correct ? ' done-ok' : ' done-wrong');
+        var dot = document.createElement('div');
+        dot.className = cls;
+        dot.innerText = idx + 1;
+        dot.onclick = function() { goElStep(idx); };
+        wrap.appendChild(dot);
+      });
+    }
+
+    function goElStep(targetIdx) {
+      if (!elCurrentLesson || !elCurrentLesson.steps) return;
+      if (targetIdx < 0) return;
+      if (targetIdx >= elCurrentLesson.steps.length) {
+        finishElearningAndSave();
+        return;
+      }
+      elCurrentIdx = targetIdx;
+      renderElPlayerStep();
+    }
+
+    function loadElSlideImg(idx) {
+      if (!elCurrentLesson) return;
+      var step = elCurrentLesson.steps[idx];
+      var imgEl = document.getElementById('elSlideImg');
+      if (!step || !step.hasImg) {
+        imgEl.style.display = 'none';
+        return;
+      }
+      if (elImageCache[idx]) {
+        imgEl.src = elImageCache[idx];
+        imgEl.style.display = 'block';
+        return;
+      }
+      google.script.run
+        .withSuccessHandler(function(res) {
+          if (res && res.ok && res.img) {
+            elImageCache[idx] = res.img;
+            if (elCurrentIdx === idx) {
+              imgEl.src = res.img;
+              imgEl.style.display = 'block';
+            }
+          }
+        })
+        .getElearningSlideImage(elCurrentLesson.lessonKey, idx);
+
+      var nextIdx = idx + 1;
+      if (nextIdx < elCurrentLesson.steps.length && elCurrentLesson.steps[nextIdx].hasImg && !elImageCache[nextIdx]) {
+        google.script.run
+          .withSuccessHandler(function(res2) {
+            if (res2 && res2.ok && res2.img) elImageCache[nextIdx] = res2.img;
+          })
+          .getElearningSlideImage(elCurrentLesson.lessonKey, nextIdx);
+      }
+    }
+
+    function renderElPlayerStep() {
+      if (!elCurrentLesson || !elCurrentLesson.steps) return;
+      var step = elCurrentLesson.steps[elCurrentIdx];
+      var sType = step.slideType || 'QUIZ';
+      var isSlideOrVideo = (sType === 'SLIDE' || sType === 'VIDEO');
+
+      // Tự động ghi nhận hoàn thành cho Slide bài giảng / Video (0 điểm, không cần bấm nút "Em đã hiểu bài")
+      if (isSlideOrVideo && !elStepStates[elCurrentIdx]) {
+        elStepStates[elCurrentIdx] = { done: true, correct: true, points: 0 };
+      }
+
+      var totals = computeElTotals();
+      var elScoreEl = document.getElementById('elPlayerScore');
+      if (elScoreEl) elScoreEl.innerText = totals.score;
+      document.getElementById('hudScorePill').style.display = 'none';
+
+      document.getElementById('elPlayerMetaBadge').innerText = elCurrentLesson.grade + ' • ' + elCurrentLesson.semester + ' • ' + elCurrentLesson.period;
+      document.getElementById('elPlayerTitle').innerText = elCurrentLesson.lessonTitle;
+
+      renderElStepDots();
+
+      var stState = elStepStates[elCurrentIdx] || null;
+      elMultiSelected = (stState && Array.isArray(stState.chosen)) ? stState.chosen.slice() : [];
+
+      document.getElementById('elPhaseTag').innerText = step.phase || 'Pha 3: Luyện tập';
+      document.getElementById('elStepCounter').innerText = 'Bước ' + (elCurrentIdx + 1) + '/' + elCurrentLesson.steps.length + (isSlideOrVideo ? ' • 📖 Bài giảng (Không tính điểm)' : (' (' + (sType === 'MULTI' ? 'CHỌN NHIỀU ĐA' : sType) + ')'));
+      document.getElementById('elQText').innerText = step.q || '';
+      document.getElementById('elMultiHint').style.display = (sType === 'MULTI') ? 'block' : 'none';
+
+      var imgEl = document.getElementById('elSlideImg');
+      var vidEl = document.getElementById('elVideoIframe');
+      imgEl.style.display = 'none';
+      imgEl.classList.toggle('lecture-large', isSlideOrVideo);
+      vidEl.style.display = 'none';
+      vidEl.src = '';
+
+      if (sType === 'VIDEO' && step.videoUrl) {
+        var rawV = String(step.videoUrl);
+        var yt = rawV.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/);
+        var drv = rawV.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/);
+        if (yt) {
+          var embedUrl = 'https://www.youtube.com/embed/' + yt[1] + '?rel=0';
+          if (step.startSec > 0) embedUrl += '&start=' + step.startSec;
+          if (step.endSec > step.startSec) embedUrl += '&end=' + step.endSec;
+          vidEl.src = embedUrl;
+          vidEl.style.display = 'block';
+        } else if (drv) {
+          vidEl.src = 'https://drive.google.com/file/d/' + drv[1] + '/preview';
+          vidEl.style.display = 'block';
+        } else if (step.hasImg) {
+          loadElSlideImg(elCurrentIdx);
+        }
+      } else if (step.hasImg) {
+        loadElSlideImg(elCurrentIdx);
+      }
+
+      var isPads = (sType === 'QUIZ' || sType === 'MULTI' || sType === 'POLL');
+      document.getElementById('elPadsGrid').style.display = isPads ? 'grid' : 'none';
+      document.getElementById('btnElCheckMulti').style.display = (sType === 'MULTI' && (!stState || !stState.done)) ? 'block' : 'none';
+      document.getElementById('elWordBox').style.display = (sType === 'WORDCLOUD') ? 'flex' : 'none';
+
+      // Chỉ hiện dòng nhắc nhở gọn cho Slide Ghi vở hoặc câu hỏi thảo luận Video (Không hiện nút bấm "Em đã hiểu bài")
+      var noteBanner = document.getElementById('elLectureNoteBanner');
+      if (sType === 'VIDEO' && step.videoNote) {
+        noteBanner.innerHTML = '🎬 <b>Câu hỏi thảo luận video:</b> ' + escapeHtml(step.videoNote);
+        noteBanner.style.display = 'block';
+      } else if (step.isGhiVo || (step.q && step.q.indexOf('GHI VỞ') > -1)) {
+        noteBanner.innerHTML = '📝 <b style="color:#ffdd33;">SLIDE GHI VỞ:</b> Em hãy quan sát kỹ Slide và ghi chép nội dung trọng tâm vào vở trước khi sang bước tiếp theo.';
+        noteBanner.style.display = 'block';
+      } else {
+        noteBanner.style.display = 'none';
+      }
+
+      var letters = ['A', 'B', 'C', 'D'];
+      for (var i = 0; i < 4; i++) {
+        document.getElementById('elOpt' + i).innerText = step.opts[i] || '';
+        var btn = document.getElementById('elPad' + i);
+        var bdg = document.getElementById('elBadge' + i);
+        btn.classList.remove('multi-selected');
+        bdg.innerText = letters[i];
+        if (elMultiSelected.indexOf(i) > -1) {
+          btn.classList.add('multi-selected');
+          bdg.innerText = '✓ ' + letters[i];
+        }
+      }
+
+      var fbBanner = document.getElementById('elFeedbackBanner');
+      if (!isSlideOrVideo && stState && stState.done) {
+        fbBanner.style.display = 'flex';
+        fbBanner.style.background = stState.correct ? 'rgba(38,137,12,0.9)' : 'rgba(226,27,60,0.9)';
+        var cLetters = (step.correctList || [step.correct]).map(function(x) { return letters[x]; }).join(', ');
+        var aiExpHtml = step.aiExplanation
+          ? '<div style="margin-top:5px; font-size:11px; color:#fff9c4; background:rgba(0,0,0,0.28); padding:5px 9px; border-radius:6px; border-left:3px solid #ffdd33;">🤖 <b>Giải thích đáp án:</b> ' + escapeHtml(step.aiExplanation) + '</div>'
+          : '';
+        document.getElementById('elFeedbackText').innerHTML = (stState.correct
+          ? '🎉 <b>CHÍNH XÁC! (Đáp án: ' + cLetters + ')</b>'
+          : '💡 <b>CHƯA CHÍNH XÁC!</b> Đáp án đúng là: <b>' + cLetters + '</b>') + aiExpHtml;
+        document.getElementById('btnElRetry').style.display = (isPads && !stState.correct) ? 'inline-block' : 'none';
+      } else {
+        fbBanner.style.display = 'none';
+      }
+
+      document.getElementById('btnElPrev').disabled = (elCurrentIdx === 0);
+      document.getElementById('btnElNext').innerText = (elCurrentIdx === elCurrentLesson.steps.length - 1) ? '🏁 Hoàn thành tiết học' : 'Bước tiếp theo ➡️';
+    }
+
+    function handleElPadTap(optIdx) {
+      if (!elCurrentLesson) return;
+      var step = elCurrentLesson.steps[elCurrentIdx];
+      var sType = step.slideType || 'QUIZ';
+      playStudentSound('click');
+
+      if (sType === 'MULTI') {
+        var pos = elMultiSelected.indexOf(optIdx);
+        if (pos > -1) elMultiSelected.splice(pos, 1);
+        else { elMultiSelected.push(optIdx); elMultiSelected.sort(); }
+        var letters = ['A', 'B', 'C', 'D'];
+        for (var i = 0; i < 4; i++) {
+          var b = document.getElementById('elPad' + i);
+          var bdg = document.getElementById('elBadge' + i);
+          if (elMultiSelected.indexOf(i) > -1) {
+            b.classList.add('multi-selected');
+            bdg.innerText = '✓ ' + letters[i];
+          } else {
+            b.classList.remove('multi-selected');
+            bdg.innerText = letters[i];
+          }
+        }
+        return;
+      }
+
+      var cList = Array.isArray(step.correctList) && step.correctList.length > 0 ? step.correctList : [step.correct || 0];
+      var isRight = (sType === 'POLL') ? true : (cList.indexOf(optIdx) > -1);
+      playStudentSound(isRight ? 'correct' : 'wrong');
+      elStepStates[elCurrentIdx] = {
+        done: true,
+        correct: isRight,
+        points: isRight ? (sType === 'POLL' ? 150 : 800) : 0,
+        chosen: [optIdx]
+      };
+      renderElPlayerStep();
+    }
+
+    function checkElMultiAnswer() {
+      if (elMultiSelected.length === 0) {
+        alert('Em hãy chạm chọn ít nhất 1 đáp án trước khi bấm Kiểm tra nhé!');
+        return;
+      }
+      var step = elCurrentLesson.steps[elCurrentIdx];
+      var targetList = Array.isArray(step.correctList) && step.correctList.length > 0 ? step.correctList : [step.correct || 0];
+      var hits = 0, wrong = 0;
+      elMultiSelected.forEach(function(c) {
+        if (targetList.indexOf(c) > -1) hits++;
+        else wrong++;
+      });
+      var exact = (hits === targetList.length && wrong === 0);
+      var partial = (step.multiMode === 'PARTIAL' && hits > 0 && wrong === 0);
+      var isRight = exact || partial;
+      var pts = exact ? 900 : (partial ? Math.round(600 * (hits / targetList.length)) : 0);
+
+      playStudentSound(isRight ? 'correct' : 'wrong');
+      elStepStates[elCurrentIdx] = {
+        done: true,
+        correct: isRight,
+        points: pts,
+        chosen: elMultiSelected.slice()
+      };
+      renderElPlayerStep();
+    }
+
+    function retryCurrentElStep() {
+      delete elStepStates[elCurrentIdx];
+      elMultiSelected = [];
+      renderElPlayerStep();
+    }
+
+    function submitElWordCloud() {
+      var val = document.getElementById('elWordInput').value.trim();
+      if (!val) { alert('Em hãy nhập câu trả lời trước nhé!'); return; }
+      playStudentSound('correct');
+      elStepStates[elCurrentIdx] = { done: true, correct: true, points: 200, text: val };
+      document.getElementById('elWordInput').value = '';
+      renderElPlayerStep();
+    }
+
+    function finishElearningAndSave() {
+      if (!elCurrentLesson) return;
+      var totals = computeElTotals();
+      var stName = (document.getElementById('elNameInput').value || 'Học sinh').trim();
+      var stClass = (document.getElementById('elClassInput').value || 'Lớp').trim();
+      var durSec = Math.max(5, Math.round((Date.now() - elStartTimeMs) / 1000));
+      var acc = totals.quizTotal > 0 ? Math.round((totals.quizCorrect / totals.quizTotal) * 100) : 100;
+      var statusLabel = acc >= 80 ? 'ĐẠT XUẤT SẮC 🌟' : (acc >= 50 ? 'ĐẠT YÊU CẦU ✅' : 'CẦN ÔN LẠI 📖');
+
+      playStudentSound('correct');
+      document.getElementById('elearningPlayerScreen').style.display = 'none';
+      document.getElementById('elearningSummaryScreen').style.display = 'flex';
+
+      document.getElementById('elCertLesson').innerText = '[' + elCurrentLesson.grade + ' • ' + elCurrentLesson.period + '] ' + elCurrentLesson.lessonTitle;
+      document.getElementById('elCertStudent').innerText = stName + ' (' + stClass + ')';
+      document.getElementById('elCertSteps').innerText = totals.completed + '/' + totals.total + ' bước (' + durSec + ' giây)';
+      document.getElementById('elCertAccuracy').innerText = totals.quizCorrect + '/' + totals.quizTotal + ' câu đúng (' + acc + '%)';
+      document.getElementById('elCertScore').innerText = totals.score;
+      document.getElementById('elCertStatus').innerText = statusLabel;
+
+      google.script.run.saveElearningResult({
+        lessonKey: elCurrentLesson.lessonKey,
+        grade: elCurrentLesson.grade,
+        semester: elCurrentLesson.semester,
+        period: elCurrentLesson.period,
+        lessonTitle: elCurrentLesson.lessonTitle,
+        studentName: stName,
+        studentClass: stClass,
+        completedSteps: totals.completed,
+        totalSteps: totals.total,
+        correctQuizCount: totals.quizCorrect,
+        totalQuizCount: totals.quizTotal,
+        totalScore: totals.score,
+        durationSec: durSec
+      });
+    }
+
+    // ==================== CHẾ ĐỘ THI ĐẤU TRỰC TIẾP (LIVE PIN) ====================
+    function joinRoom() {
+      var pin = document.getElementById('pinInput').value.trim();
+      var name = document.getElementById('nameInput').value.trim();
+      var cls = document.getElementById('classInput').value.trim();
+      if (!pin || !name) {
+        document.getElementById('errMsg').innerText = 'Vui lòng nhập đủ Mã PIN và Họ tên!';
+        return;
+      }
+      getStAudioCtx();
+      document.getElementById('btnJoin').innerText = 'ĐANG KẾT NỐI...';
+      google.script.run
+        .withSuccessHandler(function(res) {
+          if (!res || !res.ok) {
+            document.getElementById('errMsg').innerText = res ? res.msg : 'Lỗi kết nối phòng học!';
+            document.getElementById('btnJoin').innerText = 'THAM GIA NGAY 🚀';
+            return;
+          }
+          myPin = pin;
+          myName = name;
+          studentSlideMemoryCache = {};
+          document.getElementById('stNameDisplay').innerText = name;
+          document.getElementById('hudBar').style.display = 'flex';
+          document.getElementById('topModeSwitcher').style.display = 'none';
+          document.getElementById('loginScreen').style.display = 'none';
+          renderStudentState(res);
+          if (pollInterval) clearInterval(pollInterval);
+          pollInterval = setInterval(pollRoom, 1200);
+        })
+        .withFailureHandler(function(err) {
+          document.getElementById('errMsg').innerText = 'Lỗi kết nối: ' + (err && err.message ? err.message : err);
+          document.getElementById('btnJoin').innerText = 'THAM GIA NGAY 🚀';
+        })
+        .joinGame(pin, name, cls);
+    }
+
+    function pollRoom() {
+      if (!myPin || !myName || currentStudentMode !== 'LIVE') return;
+      google.script.run.withSuccessHandler(renderStudentState).getSyncState(myPin, 'STUDENT', myName);
+    }
+
+    function fetchSlideImageForStudent(qIdx, retryCount) {
+      var imgEl = document.getElementById('stSlideImg');
+      if (studentSlideMemoryCache[qIdx]) {
+        imgEl.src = studentSlideMemoryCache[qIdx];
+        imgEl.style.display = 'block';
+        return;
+      }
+      google.script.run.withSuccessHandler(function(res) {
+        if (res && res.ok && res.img && res.qIndex === currentRenderedQIdx) {
+          studentSlideMemoryCache[qIdx] = res.img;
+          imgEl.src = res.img;
+          imgEl.style.display = 'block';
+        } else if ((retryCount || 0) < 2 && qIdx === currentRenderedQIdx) {
+          setTimeout(function() { fetchSlideImageForStudent(qIdx, (retryCount || 0) + 1); }, 600);
+        }
+      }).getStudentSlideImage(myPin, qIdx);
+    }
+
+    function handlePadTap(optIdx) {
+      playStudentSound('click');
+      if (currentSlideType === 'MULTI') {
+        var pos = selectedMultiIndices.indexOf(optIdx);
+        if (pos > -1) selectedMultiIndices.splice(pos, 1);
+        else { selectedMultiIndices.push(optIdx); selectedMultiIndices.sort(); }
+        updateMultiPadVisuals();
+      } else {
+        sendAnswer(optIdx);
+      }
+    }
+
+    function updateMultiPadVisuals() {
+      var letters = ['A', 'B', 'C', 'D'];
+      for (var i = 0; i < 4; i++) {
+        var btn = document.getElementById('padBtn' + i);
+        var badge = document.getElementById('badge' + i);
+        var isSel = selectedMultiIndices.indexOf(i) > -1;
+        if (isSel) {
+          btn.classList.add('multi-selected');
+          badge.innerText = '✓ ' + letters[i];
+        } else {
+          btn.classList.remove('multi-selected');
+          badge.innerText = letters[i];
+        }
+      }
+      var submitBtn = document.getElementById('btnSubmitMulti');
+      var chosenLabels = selectedMultiIndices.map(function(i) { return letters[i]; }).join(', ');
+      submitBtn.innerText = selectedMultiIndices.length > 0
+        ? '🚀 NỘP ĐÁP ÁN ĐÃ CHỌN: [' + chosenLabels + ']'
+        : '🚀 CHỌN ÍT NHẤT 1 ĐÁP ÁN ĐỂ NỘP';
+    }
+
+    function submitMultiChoice() {
+      if (selectedMultiIndices.length === 0) {
+        alert('Em hãy chạm chọn ít nhất 1 đáp án trước khi nộp bài nhé!');
+        return;
+      }
+      sendAnswer(selectedMultiIndices.join(','));
+    }
+
+    function sendAnswer(payload) {
+      document.getElementById('padScreen').style.display = 'none';
+      document.getElementById('waitScreen').style.display = 'flex';
+      document.getElementById('waitIcon').innerText = '✅';
+      document.getElementById('waitTitle').innerText = 'Đã ghi nhận & tính điểm câu trả lời!';
+      document.getElementById('waitSub').innerText = '🔒 Điểm số đã được tính ngầm (bảo mật đến cuối tiết). Đang chờ Giáo viên nhấn Bước tiếp theo để chốt & xem đáp án...';
+      google.script.run.withSuccessHandler(renderStudentState).submitAnswer(myPin, myName, payload);
+    }
+
+    function sendWordCloud() {
+      var val = document.getElementById('stWordInput').value.trim();
+      if (!val) return;
+      document.getElementById('stWordInput').value = '';
+      sendAnswer(val);
+    }
+
+    function renderStudentState(state) {
+      if (!state || !state.ok || currentStudentMode !== 'LIVE') return;
+      if (state.me && state.status === 'FINISHED') {
+        document.getElementById('stScoreDisplay').innerText = state.me.score + ' đ';
+        document.getElementById('hudScorePill').style.display = 'inline-block';
+      } else {
+        document.getElementById('hudScorePill').style.display = 'none';
+      }
+      if (state.grade && state.period) {
+        document.getElementById('stLessonBadge').innerText = '[' + state.grade + ' • ' + state.period + ']';
+      }
+
+      var waitEl = document.getElementById('waitScreen');
+      var padEl = document.getElementById('padScreen');
+      var fbEl = document.getElementById('feedbackScreen');
+
+      if (state.status === 'LOBBY') {
+        waitEl.style.display = 'flex';
+        padEl.style.display = 'none';
+        fbEl.style.display = 'none';
+        document.getElementById('waitTitle').innerText = 'Đã vào lớp thành công!';
+        document.getElementById('waitSub').innerText = (state.grade || '') + ' - ' + (state.period || '') + ': ' + (state.lessonTitle || '');
+        return;
+      }
+
+      var sType = (state.question && state.question.slideType) ? state.question.slideType : 'QUIZ';
+      var isSlideOrVideo = (sType === 'SLIDE' || sType === 'VIDEO');
+      // Điểm số được bảo mật trên màn hình học sinh trong suốt tiết học
+      document.getElementById('hudScorePill').style.display = (state.status === 'FINISHED') ? 'inline-block' : 'none';
+
+      if (state.status === 'QUESTION') {
+        // Đối với Slide bài giảng / Video: luôn hiển thị trực tiếp nội dung phóng to, không bắt bấm nút xác nhận, không tính điểm
+        var alreadyAnswered = (!isSlideOrVideo && state.me && state.me.lastAnswer !== -1);
+        if (alreadyAnswered) {
+          padEl.style.display = 'none';
+          fbEl.style.display = 'none';
+          waitEl.style.display = 'flex';
+          document.getElementById('waitIcon').innerText = '✅';
+          var ansLetter = (state.me.lastAnswerText) ? state.me.lastAnswerText : (['A', 'B', 'C', 'D'][state.me.lastAnswer] || '');
+          document.getElementById('waitTitle').innerText = 'Đã chọn đáp án' + (ansLetter ? (': ' + ansLetter) : '!') + ' (Đã tính điểm)';
+          if (state.scoreOnTimeUpOnly === true) {
+            document.getElementById('waitSub').innerText = '⏱️ Hệ thống sẽ cộng điểm khi hết thời gian câu hỏi. Em hãy chờ nhé!';
+          } else {
+            document.getElementById('waitSub').innerText = '🔒 Điểm số của em đã được tính ngay khi chọn đáp án (bảo mật đến cuối tiết). Hãy chờ Giáo viên nhấn Bước tiếp theo để xem đáp án!';
+          }
+          return;
+        }
+
+        waitEl.style.display = 'none';
+        fbEl.style.display = 'none';
+        padEl.style.display = 'flex';
+
+        currentSlideType = sType;
+
+        document.getElementById('stPhaseTag').innerText = state.question.phase || 'Pha 3: Luyện tập';
+        document.getElementById('stModeHintBadge').innerText = isSlideOrVideo ? '📖 Bài giảng (Không tính điểm • Không giới hạn TG)' : '';
+        document.getElementById('stQText').innerText = state.question.q || '';
+        document.getElementById('stMultiHint').style.display = (sType === 'MULTI') ? 'block' : 'none';
+        document.getElementById('btnSubmitMulti').style.display = (sType === 'MULTI') ? 'block' : 'none';
+
+        var imgEl = document.getElementById('stSlideImg');
+        imgEl.classList.toggle('lecture-large', isSlideOrVideo);
+
+        if (currentRenderedQIdx !== state.currentQ) {
+          currentRenderedQIdx = state.currentQ;
+          selectedMultiIndices = [];
+          updateMultiPadVisuals();
+
+          var vidEl = document.getElementById('stVideoIframe');
+          imgEl.style.display = 'none';
+          imgEl.src = '';
+          vidEl.style.display = 'none';
+          vidEl.src = '';
+
+          if (sType === 'VIDEO' && state.question.videoUrl) {
+            var rawV = String(state.question.videoUrl);
+            var yt = rawV.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/);
+            var drv = rawV.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/);
+            if (yt) {
+              vidEl.src = 'https://www.youtube.com/embed/' + yt[1] + '?start=' + (state.question.startSec || 0);
+              vidEl.style.display = 'block';
+            } else if (drv) {
+              vidEl.src = 'https://drive.google.com/file/d/' + drv[1] + '/preview';
+              vidEl.style.display = 'block';
+            } else if (state.question.hasImg) {
+              fetchSlideImageForStudent(state.currentQ, 0);
+            }
+          } else if (state.question.hasImg) {
+            fetchSlideImageForStudent(state.currentQ, 0);
+          }
+        }
+
+        var isPads = (sType === 'QUIZ' || sType === 'MULTI' || sType === 'POLL');
+        document.getElementById('stPadsGrid').style.display = isPads ? 'grid' : 'none';
+        document.getElementById('stWordCloudBox').style.display = (sType === 'WORDCLOUD') ? 'flex' : 'none';
+
+        var stBanner = document.getElementById('stLectureNoteBanner');
+        if (sType === 'VIDEO' && state.question.videoNote) {
+          stBanner.innerHTML = '🎬 <b>Câu hỏi thảo luận:</b> ' + escapeHtml(state.question.videoNote);
+          stBanner.style.display = 'block';
+        } else if (state.question.isGhiVo || (state.question.q && state.question.q.indexOf('GHI VỞ') > -1)) {
+          stBanner.innerHTML = '📝 <b style="color:#ffdd33;">SLIDE GHI VỞ:</b> Em hãy quan sát Slide và ghi chép nội dung bài học vào vở.';
+          stBanner.style.display = 'block';
+        } else {
+          stBanner.style.display = 'none';
+        }
+
+        for (var i = 0; i < 4; i++) {
+          document.getElementById('stOpt' + i).innerText = state.question.opts[i] || '';
+        }
+        return;
+      }
+
+      if (state.status === 'REVEAL' || state.status === 'LEADERBOARD') {
+        if (isSlideOrVideo && state.status === 'REVEAL') {
+          return;
+        }
+        waitEl.style.display = 'none';
+        padEl.style.display = 'none';
+        fbEl.style.display = 'flex';
+
+        var isRight = state.me && state.me.lastCorrect;
+        if (hasRevealedForQ !== state.currentQ) {
+          hasRevealedForQ = state.currentQ;
+          playStudentSound(isRight ? 'correct' : 'wrong');
+        }
+
+        var cList = Array.isArray(state.question.correctList) && state.question.correctList.length > 0
+          ? state.question.correctList.map(function(i) { return ['A', 'B', 'C', 'D'][i]; }).join(', ')
+          : '';
+
+        fbEl.className = 'feedback-full ' + (isRight ? 'fb-correct' : 'fb-wrong');
+        document.getElementById('fbIcon').innerText = isRight ? '🎉' : '😢';
+        document.getElementById('fbTitle').innerText = isRight
+          ? 'CHÍNH XÁC!'
+          : ('CHƯA ĐÚNG! ' + (cList ? '(Đáp án: ' + cList + ')' : ''));
+        document.getElementById('fbPoints').innerText = '🔒 Điểm số và thứ hạng được bảo mật — sẽ công bố khi kết thúc tiết học!';
+        document.getElementById('fbRank').style.display = 'none';
+        var fbExpEl = document.getElementById('fbAiExplain');
+        if (fbExpEl) {
+          if (state.question && state.question.aiExplanation) {
+            fbExpEl.innerHTML = '🤖 <b>AI Giải thích:</b> ' + escapeHtml(state.question.aiExplanation);
+            fbExpEl.style.display = 'block';
+          } else {
+            fbExpEl.style.display = 'none';
+          }
+        }
+        document.getElementById('fbRank').innerText = 'Vị trí hiện tại: Hạng #' + (state.me ? state.me.rank : '?');
+        return;
+      }
+
+      if (state.status === 'FINISHED') {
+        padEl.style.display = 'none';
+        fbEl.style.display = 'none';
+        waitEl.style.display = 'flex';
+        document.getElementById('waitIcon').innerText = '🏆';
+        document.getElementById('waitTitle').innerText = 'HOÀN THÀNH TIẾT HỌC!';
+        document.getElementById('waitSub').innerHTML = '<div style="font-size:22px; color:#ffdd33; margin:10px 0; font-weight:900;">⭐ Tổng điểm của em: ' + (state.me ? state.me.score : 0) + ' điểm</div><div style="font-size:16px; color:#00e5ff; font-weight:800;">🎖️ Xếp hạng: #' + (state.me ? state.me.rank : '?') + '</div>';
+        document.getElementById('hudScorePill').style.display = 'inline-block';
+        document.getElementById('stScoreDisplay').innerText = (state.me ? state.me.score : 0) + ' đ';
+      }
+    }
+
+    function escapeHtml(str) {
+      return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+  </script>
+</body>
+</html>
